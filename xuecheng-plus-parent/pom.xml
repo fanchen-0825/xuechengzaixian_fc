@@ -8,7 +8,7 @@
     <name>xuecheng-plus-parent</name>
     <description>xuecheng-plus-parent</description>
     <packaging>pom</packaging>
-
+<!--    父工程的职责是对依赖包的版本进行管理-->
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,7 +24,7 @@
         <mysql-connector-java.version>8.0.30</mysql-connector-java.version>
         <mybatis-plus-boot-starter.version>3.4.1</mybatis-plus-boot-starter.version>
         <commons-lang.version>2.6</commons-lang.version>
-        <minio.version>8.4.3</minio.version>
+        <minio.version> 8.4.3</minio.version>
         <xxl-job-core.version>2.3.1</xxl-job-core.version>
         <swagger-annotations.version>1.5.20</swagger-annotations.version>
         <commons-lang3.version>3.10</commons-lang3.version>
@@ -70,6 +70,7 @@
                 <artifactId>mapstruct-jdk8</artifactId>
                 <version>${org.mapstruct.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>

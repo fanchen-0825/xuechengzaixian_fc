@@ -8,7 +8,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../xuecheng-plus-parent</relativePath> <!-- lookup parent from repository -->
 	</parent>
-
+<!--	基础工程的职责是提供一些系统架构所需要的基础类库以及一此工具类库基础工程的职责是提供一些系统架构所需要的基础类库以及一此工具类库-->
 	<artifactId>xuecheng-plus-base</artifactId>
 	<dependencies>
 		<dependency>
