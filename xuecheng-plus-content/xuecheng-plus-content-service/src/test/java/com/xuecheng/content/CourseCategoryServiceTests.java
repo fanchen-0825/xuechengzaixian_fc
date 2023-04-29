@@ -37,29 +37,29 @@ public class CourseCategoryServiceTests {
 //        System.out.println(courseCategoryTreeDtos);
     }
 
-    @Test
-    void test2() {
-        List<CourseCategoryTreeDto> categoryTreeDtoList = mapper.selectAll();
-        String id="1";
-        Map<String, CourseCategoryTreeDto> dtoMap = categoryTreeDtoList.stream().filter(item -> !id.equals(item.getId())).collect(Collectors.toMap(item -> item.getId(), value -> value, (key1, key2) -> key2));
-
-        List<CourseCategoryTreeDto> list = new ArrayList<>();
-        //进行封装处理
-        categoryTreeDtoList.stream().filter(item -> !id.equals(item.getId())).forEach(
-                item -> {
-                    if (id.equals(item.getParentid())) {
-                        list.add(item);
-                    } else {
-                        CourseCategoryTreeDto dto = dtoMap.get(item.getParentid());
-                        if (dto!=null) {
-                            if (dto.getChildrenTreeNodes() == null) {
-                                dto.setChildrenTreeNodes(new ArrayList<CourseCategoryTreeDto>());
-                            }
-                            dto.getChildrenTreeNodes().add(item);
-                        }
-                    }
-                }
-        );
-        System.out.println(list);
-    }
+//    @Test
+//    void test2() {
+//        List<CourseCategoryTreeDto> categoryTreeDtoList = mapper.selectAll();
+//        String id="1";
+//        Map<String, CourseCategoryTreeDto> dtoMap = categoryTreeDtoList.stream().filter(item -> !id.equals(item.getId())).collect(Collectors.toMap(item -> item.getId(), value -> value, (key1, key2) -> key2));
+//
+//        List<CourseCategoryTreeDto> list = new ArrayList<>();
+//        //进行封装处理
+//        categoryTreeDtoList.stream().filter(item -> !id.equals(item.getId())).forEach(
+//                item -> {
+//                    if (id.equals(item.getParentid())) {
+//                        list.add(item);
+//                    } else {
+//                        CourseCategoryTreeDto dto = dtoMap.get(item.getParentid());
+//                        if (dto!=null) {
+//                            if (dto.getChildrenTreeNodes() == null) {
+//                                dto.setChildrenTreeNodes(new ArrayList<CourseCategoryTreeDto>());
+//                            }
+//                            dto.getChildrenTreeNodes().add(item);
+//                        }
+//                    }
+//                }
+//        );
+//        System.out.println(list);
+//    }
 }
