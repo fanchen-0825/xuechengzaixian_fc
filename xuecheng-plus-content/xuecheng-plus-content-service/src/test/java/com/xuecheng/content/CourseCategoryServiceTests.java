@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 /**
  * @autuor 范大晨
  * @Date 2023/4/27 20:26
- * @description TODO
  */
 @SpringBootTest
 public class CourseCategoryServiceTests {
