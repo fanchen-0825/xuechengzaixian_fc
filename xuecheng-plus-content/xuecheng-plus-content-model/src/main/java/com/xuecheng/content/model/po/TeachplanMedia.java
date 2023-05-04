@@ -1,8 +1,11 @@
 package com.xuecheng.content.model.po;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -43,7 +46,7 @@ public class TeachplanMedia implements Serializable {
     /**
      * 媒资文件原始名称
      */
-    @TableField("media_fileName")
+    //@TableField("media_fileName")
     private String mediaFilename;
 
     @TableField(fill = FieldFill.INSERT)

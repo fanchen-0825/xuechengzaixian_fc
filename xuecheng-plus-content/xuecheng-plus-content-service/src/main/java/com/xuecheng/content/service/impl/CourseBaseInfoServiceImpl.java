@@ -120,7 +120,6 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         CourseBase courseBase = new CourseBase();
         BeanUtils.copyProperties(addCourseDto, courseBase);
         courseBase.setCompanyId(companyId);
-        courseBase.setCreateDate(LocalDateTime.now());
         courseBase.setAuditStatus("202002");
         courseBase.setStatus("203001");
         int insert = courseBaseMapper.insert(courseBase);

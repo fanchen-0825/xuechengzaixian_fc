@@ -38,7 +38,7 @@ public class Teachplan implements Serializable {
     private Integer grade;
 
     /**
-     * 课程类型:1视频、2文档
+     * 课程类型:1视频 2文档
      */
     private String mediaType;
 
