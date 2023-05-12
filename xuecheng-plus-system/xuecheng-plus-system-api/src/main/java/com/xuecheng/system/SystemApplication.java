@@ -17,7 +17,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableSwagger2Doc
 @SpringBootApplication
 public class SystemApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(SystemApplication.class,args);
     }

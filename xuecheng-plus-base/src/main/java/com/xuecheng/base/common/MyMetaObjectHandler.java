@@ -1,9 +1,8 @@
-package com.xuecheng;
+package com.xuecheng.base.common;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 
 /**

@@ -1,5 +1,5 @@
 ###课程内容分页条件查询
-POST {{content_host}}/content/course/list?pageNo=2&pageSize=2
+POST {{gateway_host}}/content/course/list?pageNo=2&pageSize=2
 Content-Type: application/json
 
 {
