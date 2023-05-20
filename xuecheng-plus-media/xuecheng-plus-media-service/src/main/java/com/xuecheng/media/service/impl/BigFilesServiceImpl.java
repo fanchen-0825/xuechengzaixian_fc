@@ -6,8 +6,10 @@ import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.BigFilesService;
 import io.minio.*;
 import io.minio.errors.*;
@@ -49,6 +51,9 @@ public class BigFilesServiceImpl implements BigFilesService {
 
     @Value("${minio.bucket.videofiles}")
     private String bucket_videofiles;
+
+    @Autowired
+    private MediaProcessMapper mediaProcessMapper;
 
     /**
      * 查看上传文件是否已经存在
@@ -174,7 +179,7 @@ public class BigFilesServiceImpl implements BigFilesService {
         try (FileInputStream fileInputStream = new FileInputStream(downFile)) {
             String downloadMd5Hex = DigestUtils.md5Hex(fileInputStream);
             if (!fileMd5.equals(downloadMd5Hex)) {
-                log.error("校验后原始文件与合并后文件不同，原始文件md5:{},合并文件md5:{}",fileMd5,downloadMd5Hex);
+                log.error("校验后原始文件与合并后文件不同，原始文件md5:{},合并文件md5:{}", fileMd5, downloadMd5Hex);
                 return RestResponse.validfail("文件校验失败");
             }
         } catch (Exception e) {
@@ -184,7 +189,7 @@ public class BigFilesServiceImpl implements BigFilesService {
         addMediaFilesToDb(companyId, uploadFileParamsDto, bucket_videofiles, fileMd5, extensionName, uploadFileParamsDto.getFilename());
 
         //清除分块
-        clearChunk(bucket_videofiles,fileMd5,chunkTotal);
+        clearChunk(bucket_videofiles, fileMd5, chunkTotal);
         return RestResponse.success(true);
     }
 
@@ -199,10 +204,10 @@ public class BigFilesServiceImpl implements BigFilesService {
                 .objects(deleteObjects)
                 .build();
         Iterable<Result<DeleteError>> results = minioClient.removeObjects(removeObjectsArgs);
-        results.forEach(r->{
-            DeleteError deleteError=null;
+        results.forEach(r -> {
+            DeleteError deleteError = null;
             try {
-                deleteError=r.get();
+                deleteError = r.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -211,12 +216,13 @@ public class BigFilesServiceImpl implements BigFilesService {
 
     /**
      * 媒资文件信息入库
-     * @param companyId 公司id
+     *
+     * @param companyId           公司id
      * @param uploadFileParamsDto 文件信息
-     * @param bucket 存储桶名称
-     * @param md5Hex 原始文件md5值
-     * @param extensionName 文件扩展名
-     * @param fileName 文件名称
+     * @param bucket              存储桶名称
+     * @param md5Hex              原始文件md5值
+     * @param extensionName       文件扩展名
+     * @param fileName            文件名称
      * @return 返回媒资文件信息
      */
     public MediaFiles addMediaFilesToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String md5Hex, String extensionName, String fileName) {
@@ -231,9 +237,9 @@ public class BigFilesServiceImpl implements BigFilesService {
             mediaFiles.setCompanyId(companyId);
             mediaFiles.setFilename(fileName);
             mediaFiles.setBucket(bucket);
-            mediaFiles.setFilePath(getMergeFilePath(md5Hex,extensionName));
+            mediaFiles.setFilePath(getMergeFilePath(md5Hex, extensionName));
             mediaFiles.setFileId(md5Hex);
-            mediaFiles.setUrl(bucket+"/"+getMergeFilePath(md5Hex,extensionName));
+            mediaFiles.setUrl(bucket + "/" + getMergeFilePath(md5Hex, extensionName));
             mediaFiles.setStatus("1");
             mediaFiles.setFileSize(uploadFileParamsDto.getFileSize());
             mediaFiles.setAuditStatus("202003");
@@ -243,8 +249,26 @@ public class BigFilesServiceImpl implements BigFilesService {
                 log.error("保存文件信息到数据库失败,{}", mediaFiles.toString());
                 throw new XueChengPlusException("文件信息入库失败");
             }
+
+            //添加到待处理任务表
+            addWaitingTask(mediaFiles);
         }
         return mediaFiles;
+    }
+
+    private void addWaitingTask(MediaFiles mediaFiles) {
+        String filename = mediaFiles.getFilename();
+        String exension = filename.substring(filename.lastIndexOf("."));
+        String mimeType = getMimeType(exension);
+        //判断是否是需要处理文件的类型
+        if (mimeType.equals("video/x-msvideo")) {
+            //进行文件数据入库
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles, mediaProcess, "url");
+            mediaProcess.setStatus("1");
+            mediaProcess.setFailCount(0);
+            mediaProcessMapper.insert(mediaProcess);
+        }
     }
 
     /**
@@ -255,7 +279,7 @@ public class BigFilesServiceImpl implements BigFilesService {
      * @return 返回下载的文件
      */
     @NotNull
-    private File downloadFileFromMinio(String bucketVideofiles, String mergeFilePath) {
+    public File downloadFileFromMinio(String bucketVideofiles, String mergeFilePath) {
         File tempFile = null;
         FileOutputStream fileOutputStream = null;
         try {
@@ -305,12 +329,19 @@ public class BigFilesServiceImpl implements BigFilesService {
         return fileMd5.substring(0, 1) + "/" + fileMd5.substring(1, 2) + "/" + fileMd5 + "/" + "chunk/";
     }
 
-    private void addMediaFilesToMinIO(String localPath, String bucket, String mimeType, String fileName) throws Exception {
+    /**
+     *
+     * @param localPath 本地文件路径
+     * @param bucket 存储桶名称
+     * @param mimeType 文件类型
+     * @param fileName 存储后文件名称
+     */
+    public void addMediaFilesToMinIO(String localPath, String bucket, String mimeType, String fileName) throws Exception {
         UploadObjectArgs upload = UploadObjectArgs.builder()
                 .filename(localPath)//本地文件
-                .bucket(bucket)                             //存储桶的名称
-                .object(fileName)                            //存储后文件名称
-                .contentType(mimeType)                                  //文件类型
+                .bucket(bucket)                              //存储桶的名称
+                .object(fileName)                            //存储后文件路径
+                .contentType(mimeType)                       //文件类型
                 .build();
         minioClient.uploadObject(upload);
     }
