@@ -2,7 +2,6 @@ package com.xuecheng.media.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.beust.jcommander.Strings;
 import com.j256.simplemagic.ContentInfo;
 import com.j256.simplemagic.ContentInfoUtil;
 
@@ -17,10 +16,8 @@ import com.xuecheng.media.model.po.MediaFiles;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.MinioClient;
 import io.minio.UploadObjectArgs;
-import io.minio.errors.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,11 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -79,7 +72,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     @Transactional
-    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String absolutePath) {
+    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String absolutePath, String objectName) {
 
         //将文件存入minion
         //得到本地文件名称
@@ -98,11 +91,14 @@ public class MediaFileServiceImpl implements MediaFileService {
         String sourceFilename = uploadFileParamsDto.getFilename();
         String extensionName = sourceFilename.substring(sourceFilename.lastIndexOf(".") + 1);
         //拼接
-        String fileName = date + md5Hex + "." + extensionName;
-
+        String fileName=null;
+        if (objectName==null) {
+            fileName = date + md5Hex + "." + extensionName;
+        } else {
+            fileName = objectName;
+        }
         //获取类型
         String mimeType = getMimeType(extensionName);
-
         try {
             addMediaFilesToMinIO(localPath, bucket, mimeType, fileName);
             log.info("上传文件成功");
@@ -120,6 +116,16 @@ public class MediaFileServiceImpl implements MediaFileService {
         return uploadFileResultDto;
     }
 
+    /**
+     * 根据id查询媒资信息
+     *
+     * @param mediaId
+     * @return
+     */
+    @Override
+    public MediaFiles getFileById(String mediaId) {
+        return mediaFilesMapper.selectById(mediaId);
+    }
 
 
     public MediaFiles addMediaFilesToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String md5Hex, String extensionName, String fileName) {

@@ -11,10 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -40,8 +37,9 @@ public class MediaFilesController {
 
     }
 
-    @PostMapping(value = "/upload/coursefile")//,consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    public UploadFileResultDto upload(@RequestPart("filedata") MultipartFile fileData) throws IOException {
+    @PostMapping(value = "/upload/coursefile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)//,consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    public UploadFileResultDto upload(@RequestPart("filedata") MultipartFile fileData,
+                                      @RequestParam(value= "objectName",required=false) String objectName) throws IOException {
         //设置公司id 这里先直接写死 后期做单点登录会修改
         Long companyId = 1232141425L;
 
@@ -54,6 +52,6 @@ public class MediaFilesController {
         File tempFile = File.createTempFile("minio", "temp");
         fileData.transferTo(tempFile);
         String absolutePath = tempFile.getAbsolutePath();
-        return mediaFileService.uploadFile(companyId,uploadFileParamsDto,absolutePath);
+        return mediaFileService.uploadFile(companyId,uploadFileParamsDto,absolutePath,objectName);
     }
 }

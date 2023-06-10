@@ -3,11 +3,16 @@ package com.xuecheng.content.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
+import com.xuecheng.content.mapper.TeachplanMediaMapper;
+import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
+import com.xuecheng.content.model.po.TeachplanMedia;
 import com.xuecheng.content.service.TeachplanService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -23,6 +28,9 @@ public class TeachplanServiceImpl implements TeachplanService {
 
     @Autowired
     private TeachplanMapper teachplanMapper;
+
+    @Autowired
+    private TeachplanMediaMapper teachplanMediaMapper;
 
     @Override
     public List<TeachplanDto> selectTreeNodes(Long id) {
@@ -70,29 +78,55 @@ public class TeachplanServiceImpl implements TeachplanService {
         LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Teachplan::getCourseId, courseId)
                 .eq(Teachplan::getParentid, parentid);
-        queryWrapper=flag.equals("moveUp")?queryWrapper.orderByAsc(Teachplan::getOrderby):queryWrapper.orderByDesc(Teachplan::getOrderby);
+        queryWrapper = flag.equals("moveUp") ? queryWrapper.orderByAsc(Teachplan::getOrderby) : queryWrapper.orderByDesc(Teachplan::getOrderby);
         List<Teachplan> teachplans = teachplanMapper.selectList(queryWrapper);
 
         //第一条记录 然后变成前一条记录
         Teachplan teachplanFront = teachplans.stream().findFirst().get();
         List<Teachplan> teachplanList = teachplans.stream().skip(1).collect(Collectors.toList());
         for (Teachplan item : teachplanList) {
-            if (Objects.equals(item.getId(),id)) {
+            if (Objects.equals(item.getId(), id)) {
                 exchangeOrderBy(teachplan, teachplanFront);
                 break;
-            }else {
-                teachplanFront=item;
+            } else {
+                teachplanFront = item;
             }
         }
     }
 
     @Override
+    @Transactional
     public void deleteTeachPlan(Long id) {
         Teachplan teachplan = teachplanMapper.selectById(id);
-        teachplan.setStatus(0);
-        int i = teachplanMapper.updateById(teachplan);
-        if (i<=0){
+        int i = teachplanMapper.deleteById(id);
+        teachplanMediaMapper.delete(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, id));
+        if (i <= 0) {
             throw new XueChengPlusException("删除失败，请稍后重试");
+        }
+
+
+    }
+
+    /**
+     * 课程计划与媒资绑定接口
+     *
+     * @param bindTeachplanMediaDto
+     */
+    @Override
+    public void associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto) {
+        Long teachplanId = bindTeachplanMediaDto.getTeachplanId();
+        Teachplan teachplan = teachplanMapper.selectById(teachplanId);
+        TeachplanMedia selectOne = teachplanMediaMapper.selectOne(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, teachplanId));
+        if (selectOne != null) {
+            teachplanMediaMapper.delete(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, teachplanId));
+        }
+        TeachplanMedia teachplanMedia = new TeachplanMedia();
+        BeanUtils.copyProperties(bindTeachplanMediaDto, teachplanMedia);
+        teachplanMedia.setCourseId(teachplan.getCourseId());
+        teachplanMedia.setMediaFilename(bindTeachplanMediaDto.getFileName());
+        int insert = teachplanMediaMapper.insert(teachplanMedia);
+        if (insert <= 0) {
+            XueChengPlusException.cast("课程与媒资绑定失败");
         }
     }
 //    /**
@@ -163,7 +197,8 @@ public class TeachplanServiceImpl implements TeachplanService {
 
     /**
      * 交换orderBy的值
-     * @param teachplan 当前记录
+     *
+     * @param teachplan          当前记录
      * @param teachplanCandidate 待交换记录
      */
     private void exchangeOrderBy(Teachplan teachplan, Teachplan teachplanCandidate) {

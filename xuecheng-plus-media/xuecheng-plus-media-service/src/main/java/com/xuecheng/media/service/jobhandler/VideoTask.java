@@ -38,7 +38,6 @@ public class VideoTask {
 
     @XxlJob("videoJobHandler")
     public void shardingJobHandler() throws Exception {
-
         // 分片参数
         int shardIndex = XxlJobHelper.getShardIndex();
         int shardTotal = XxlJobHelper.getShardTotal();
