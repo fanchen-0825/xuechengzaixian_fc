@@ -1,0 +1,6 @@
+### 申请验证码
+POST {{checkcode_host}}/checkcode/pic
+
+
+### 校验验证码
+POST {{checkcode_host}}/checkcode/verify?key=checkcode:689f1ddd8f5a4d0a91ac6bc4eff1492a&code=2RVD

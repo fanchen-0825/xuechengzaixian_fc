@@ -1,6 +1,7 @@
 package com.xuecheng.base.exception;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -13,12 +14,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.ArrayList;
 import java.util.List;
 
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+
 /**
  * @autuor 范大晨
  * @Date 2023/4/29 15:08
  * @description 统一异常处理
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(XueChengPlusException.class)
@@ -30,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public RestErrorResponse unknowException(Exception exception){
+        log.error("【系统异常】{}",exception.getMessage(),exception);
+        String message = exception.getMessage();
+        if (message.equals("不允许访问")) {
+            return new RestErrorResponse("没有操作此功能的权限");
+        }
         return new RestErrorResponse(CommonError.UNKOWN_ERROR.getErrMessage());
     }
 
