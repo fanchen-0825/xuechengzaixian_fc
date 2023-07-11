@@ -1,9 +1,6 @@
 package com.xuecheng.content.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
@@ -18,15 +15,12 @@ import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseMarket;
 import com.xuecheng.content.service.CourseBaseInfoService;
-import jdk.nashorn.internal.ir.IfNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.context.Theme;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -47,7 +41,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
     private CourseCategoryMapper courseCategoryMapper;
 
     @Override
-    public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
+    public PageResult<CourseBase> queryCourseBaseList(Long companyId, PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
         //构建查询条件对象
         LambdaQueryWrapper<CourseBase> queryWrapper = new LambdaQueryWrapper<>();
         //构建查询条件，根据课程名称查询
@@ -57,6 +51,8 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         //构建查询条件，根据课程发布状态查询
         //根据课程发布状态查询
         queryWrapper.eq(StringUtils.isNotEmpty(queryCourseParamsDto.getPublishStatus()), CourseBase::getStatus, queryCourseParamsDto.getPublishStatus());
+        //细粒度 cpmpanyID
+        queryWrapper.eq(CourseBase::getCompanyId,companyId);
         //分页对象
         Page<CourseBase> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());
         // 查询数据内容获得结果

@@ -1,6 +1,7 @@
 package com.xuecheng.content.service;
 
 import com.xuecheng.content.model.dto.CoursePreviewDto;
+import com.xuecheng.content.model.po.CoursePublish;
 import sun.util.resources.cldr.mg.LocaleNames_mg;
 
 import java.io.File;
@@ -25,4 +26,6 @@ public interface CoursePublishService {
 
     File generateCourseHtml(Long courseId);
     void  uploadCourseHtml(File file, Long courseId);
+
+    CoursePublish getCoursePublish(Long courseId);
 }

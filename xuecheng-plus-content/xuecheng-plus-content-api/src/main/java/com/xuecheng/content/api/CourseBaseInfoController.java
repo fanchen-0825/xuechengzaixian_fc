@@ -39,7 +39,9 @@ public class CourseBaseInfoController {
     @ApiOperation("分页课程信息查询")
     @PreAuthorize("hasAuthority('xc_teachmanager_course_list')")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
-        return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = Long.valueOf(user.getCompanyId());
+        return courseBaseInfoService.queryCourseBaseList(companyId,pageParams, queryCourseParamsDto);
     }
 
     @PostMapping("/course")

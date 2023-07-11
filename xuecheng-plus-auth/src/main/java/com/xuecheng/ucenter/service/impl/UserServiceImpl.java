@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public class UserServiceImpl implements UserDetailsService {
     @Autowired
     private ApplicationContext applicationContext;
     @Autowired
-     XcMenuMapper xcMenuMapper;
+    XcMenuMapper xcMenuMapper;
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
@@ -56,10 +57,16 @@ public class UserServiceImpl implements UserDetailsService {
         return getUserDetails(xcUser);
     }
 
-    private  UserDetails getUserDetails(XcUser xcUser) {
-        List<XcMenu> xcMenus = xcMenuMapper.selectPermissionByUserId(xcUser.getId());
+    private UserDetails getUserDetails(XcUser xcUser) {
         //从数据库查询用户权限
-        String[] authorities = {"test"};
+        List<XcMenu> xcMenus = xcMenuMapper.selectPermissionByUserId(xcUser.getId());
+        ArrayList<Object> permissions = new ArrayList<>();
+        if (xcMenus.size() <= 0) {
+            permissions.add("test");
+        }else {
+            xcMenus.forEach(item->{permissions.add(item.getCode());});
+        }
+        String[] authorities = permissions.toArray(new String[0]);
         //进行用户信息扩展 将查到的信息除敏感信息外全部转为json存入
         //敏感信息进行脱敏 这里采用赋默认简单值的方法
         String password = "12345678";

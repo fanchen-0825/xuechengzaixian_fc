@@ -7,7 +7,6 @@ import com.xuecheng.content.model.dto.CourseBaseInfoDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
-import org.springframework.stereotype.Service;
 
 /**
  * @autuor 范大晨
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
  * @description 课程信息管理业务接口
  */
 public interface CourseBaseInfoService {
-    PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto);
+    PageResult<CourseBase> queryCourseBaseList(Long companyId, PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto);
 
     CourseBaseInfoDto createCourseBase(Long companyId, AddCourseDto addCourseDto);
 
